@@ -1,0 +1,68 @@
+name: postgres
+services:
+
+  postgres_server:
+    image: ${POSTGRES_IMAGE}:${POSTGRES_VERSION}
+    restart: always
+    environment:
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - PGDATA
+      - POSTGRES_INITDB_ARGS
+      - POSTGRES_INITDB_WALDIR
+      - POSTGRES_HOST_AUTH_METHOD
+    expose:
+      # The postgres port is exposed by the postgres image to other linked services within the docker network
+      - ${POSTGRES_CONTAINER_PORT}
+    ports:
+      - target: ${POSTGRES_CONTAINER_PORT}
+        published: ${POSTGRES_HOST_PORT}
+        host_ip: ${POSTGRES_HOST_IP}
+        protocol: tcp
+        mode: host
+    volumes:
+      # The volume for managing the postgres storage
+      - postgres-data:/var/lib/postgresql/data
+    labels:
+      com.qlik.presales.description: "postgres server"
+      com.qlik.presales.author: "ed.ost@qlik.com"
+      com.qlik.presales.source: "https://hub.docker.com/_/postgres"
+
+  postgres_client:
+    image: ${POSTGRES_IMAGE}:${POSTGRES_VERSION}
+    profiles:
+      - client
+    environment:
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+    command:
+      - psql
+      - "--host=postgres_server"
+      - "--port=${POSTGRES_CONTAINER_PORT}"
+      - "--dbname=${POSTGRES_DB}"
+      - "--username=${POSTGRES_USER}"
+      - "--password"
+    labels:
+      com.qlik.presales.description: "postgres client"
+      com.qlik.presales.author: "ed.ost@qlik.com"
+      com.qlik.presales.source: "https://hub.docker.com/_/postgres"
+
+  adminer:
+    image: ${ADMINER_IMAGE}:${ADMINER_VERSION}
+    profiles:
+      - admin
+    restart: always
+    ports:
+      - target: ${ADMINER_CONTAINER_PORT}
+        published: ${ADMINER_HOST_PORT}
+        host_ip: ${ADMINER_HOST_IP}
+        protocol: tcp
+        mode: host
+  
+
+volumes:
+  postgres-data:
+    labels:
+      com.qlik.presales.description: "postgres database storage"
