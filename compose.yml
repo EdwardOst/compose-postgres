@@ -53,6 +53,8 @@ services:
     image: ${ADMINER_IMAGE}:${ADMINER_VERSION}
     profiles:
       - admin
+    environment:
+      - ADMINER_DEFAULT_SERVER
     restart: always
     ports:
       - target: ${ADMINER_CONTAINER_PORT}
